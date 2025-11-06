@@ -145,6 +145,20 @@ def get_rain_rates(
                 ]
             else:
                 for i, link in enumerate(calc_data):
+                    # ______________________________________________________________________________________________
+                    # Debugging section
+                    # it seems all trsl values are nan
+
+                    # Check if TRSL values of link are NaN before preprocessing
+                    if np.all(np.isnan(link.trsl.values)):
+                        logger.warning(
+                            "[%s] [CML ID: %d] All TRSL values are NaN before preprocessing",
+                            log_run_id,
+                            link.cml_id.values,
+                        )
+
+                    # ______________________________________________________________________________________________
+
                     preprocessed_df = preprocess_utility.cml_preprocess(
                         cml=link,
                         interp_max_gap=10,
@@ -156,8 +170,23 @@ def get_rain_rates(
                         z_method=True,
                         z_threshold=10.0,
                         reset_detect=False,
-                        subtract_median=True,
+                        subtract_median=False,      # dont use for real time inference
                     )
+
+                    
+                    # ______________________________________________________________________________________________
+                    # Debug section
+                    # it seems all trsl values are nan after preprocessing -> check why
+
+                    # Check if TRSL values of link are NaN 
+                    if np.all(np.isnan(preprocessed_df.trsl_A.values)):
+                        logger.warning(
+                            "[%s] [CML ID: %d] All TRSL values are NaN after preprocessing",
+                            log_run_id,
+                            link.cml_id.values,
+                        )
+                    # ______________________________________________________________________________________________
+
 
                     cnn_out = cnn_infer_only(
                         preprocessed_df=preprocessed_df,
@@ -166,7 +195,7 @@ def get_rain_rates(
                         param_dir=cp["wet_dry"]["cnn_model_name"],
                         sample_size=60,
                     )
-
+                    
                     link = attach_cnn_output_to_xarray(
                         link, cnn_out, sample_size=60, threshold=0.5
                     )
