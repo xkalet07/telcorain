@@ -144,8 +144,12 @@ def cnn_infer_only(
     if cutoff != 0:
         X = X[:-cutoff]
 
-    # Reshape into (n_samples, sample_size, num_channels)
-    X = X.reshape(-1, sample_size, num_channels)
+   # --------------------------------------------------------------------------------------------------------------------------
+    # TODO: Warning, real reshaping order is [n_samples, n_channels, samplesize]
+    #by using .transpose(0,2,1)
+    # old: Reshape into (n_samples, sample_size, num_channels)
+    X = X.reshape(-1, sample_size, num_channels).transpose(0,2,1)
+    # --------------------------------------------------------------------------------------------------------------------------
 
     # Convert to torch tensors
     X_tensor = torch.Tensor(X)
